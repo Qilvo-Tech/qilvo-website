@@ -5,3 +5,10 @@ resources/
 
 # Editor
 .vscode/
+
+# Cloudflare / Node
+node_modules/
+.wrangler/
+.dev.vars
+.env
+dist/

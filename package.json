@@ -1,0 +1,15 @@
+{
+  "name": "qilvo-website",
+  "private": true,
+  "scripts": {
+    "build": "hugo --gc --minify",
+    "check": "tsc --noEmit && wrangler types --check",
+    "dev:worker": "wrangler dev --test-scheduled",
+    "deploy": "npm run build && wrangler deploy --minify"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.125.0"
+  }
+}

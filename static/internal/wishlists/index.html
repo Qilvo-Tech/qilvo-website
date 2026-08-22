@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Qilvo Wishlist Pulse</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root{color-scheme:dark;--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#f0f6fc;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--red:#f85149}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#172337 0,#0d1117 42%);color:var(--text);font:15px/1.45 system-ui,sans-serif}main{width:min(1180px,calc(100% - 32px));margin:36px auto}header{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:24px}h1{margin:0;font-size:clamp(24px,4vw,40px);letter-spacing:-.04em}.status{color:var(--muted);text-align:right}.status strong{color:var(--green)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card,.chart-panel{background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:14px;box-shadow:0 16px 50px #0004}.card{padding:18px}.label{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}.value{margin-top:6px;font-size:32px;font-weight:750;letter-spacing:-.04em}.primary .value{color:var(--blue)}.chart-panel{height:460px;margin-top:14px;padding:20px}.error{display:none;margin:14px 0;padding:12px;border:1px solid var(--red);border-radius:10px;color:#ffb4ae;background:#f8514915}footer{margin-top:12px;color:var(--muted);font-size:12px}@media(max-width:760px){.cards{grid-template-columns:repeat(2,1fr)}header{align-items:start;flex-direction:column}.status{text-align:left}.chart-panel{height:370px}}
+  </style>
+</head>
+<body>
+<main>
+  <header><div><div class="label">Qilvo Games · Steam App <span id="app-id">—</span></div><h1>Wishlist Pulse</h1></div><div class="status"><strong>● Auto-refreshing</strong><br><span id="freshness">Waiting for first sync…</span></div></header>
+  <div id="error" class="error"></div>
+  <section class="cards">
+    <div class="card primary"><div class="label">Outstanding wishes</div><div class="value" id="outstanding">—</div></div>
+    <div class="card"><div class="label">Lifetime additions</div><div class="value" id="adds">—</div></div>
+    <div class="card"><div class="label">Deletions</div><div class="value" id="deletes">—</div></div>
+    <div class="card"><div class="label">Purchases / activations</div><div class="value" id="purchases">—</div></div>
+  </section>
+  <section class="chart-panel"><canvas id="chart"></canvas></section>
+  <footer>Steam queried every 60 seconds. Dashboard refreshes every 60 seconds. Outstanding = additions − deletions − purchases/activations.</footer>
+</main>
+<script>
+const number=new Intl.NumberFormat();let chart;const text=(id,value)=>document.getElementById(id).textContent=value;
+function render(data){text('app-id',data.app_id);text('outstanding',number.format(data.outstanding));text('adds',number.format(data.lifetime_adds));text('deletes',number.format(data.lifetime_deletes));text('purchases',number.format(data.lifetime_purchases));const checked=data.last_checked_at?new Date(data.last_checked_at).toLocaleString():'not yet';const generated=data.steam_generated_at?new Date(data.steam_generated_at).toLocaleString():'not supplied';text('freshness',`Checked ${checked} · Steam generated ${generated}`);const error=document.getElementById('error');error.style.display=data.last_error?'block':'none';error.textContent=data.last_error||'';const config={type:'bar',data:{labels:data.days.map(x=>x.date),datasets:[{label:'Adds',data:data.days.map(x=>x.adds),backgroundColor:'#58a6ff'},{label:'Deletes',data:data.days.map(x=>-x.deletes),backgroundColor:'#f85149'},{label:'Purchases',data:data.days.map(x=>-x.purchases),backgroundColor:'#d29922'},{type:'line',label:'Net',data:data.days.map(x=>x.net),borderColor:'#3fb950',backgroundColor:'#3fb950',tension:.25}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#c9d1d9'}}},scales:{x:{stacked:true,ticks:{color:'#8b949e',maxRotation:0},grid:{display:false}},y:{stacked:true,ticks:{color:'#8b949e'},grid:{color:'#30363d'}}}}};if(chart){chart.data=config.data;chart.update()}else{chart=new Chart(document.getElementById('chart'),config)}}
+async function refresh(){try{const response=await fetch('/internal/wishlists/api/dashboard',{cache:'no-store'});if(!response.ok)throw new Error(`Dashboard HTTP ${response.status}`);render(await response.json())}catch(error){const box=document.getElementById('error');box.style.display='block';box.textContent=error.message}}
+refresh();setInterval(refresh,60000);
+</script>
+</body>
+</html>

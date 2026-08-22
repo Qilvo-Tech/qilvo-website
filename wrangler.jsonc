@@ -1,0 +1,46 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "qilvo-website",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "preview_urls": true,
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "qilvo.games/*",
+      "zone_name": "qilvo.games"
+    },
+    {
+      "pattern": "www.qilvo.games/*",
+      "zone_name": "qilvo.games"
+    }
+  ],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/internal/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "qilvo-wishlists",
+      "database_id": "c3e62f2d-7647-4265-be10-c70a404f849d",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "vars": {
+    "STEAM_APP_ID": "3338980"
+  },
+  "secrets": {
+    "required": ["STEAM_WEB_API_KEY", "DASHBOARD_PASSWORD"]
+  },
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
